@@ -10,6 +10,7 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
     try {
+
         const result = await connectionPool.query(
             "SELECT * FROM questions"
         );
@@ -17,23 +18,67 @@ router.get("/", async (req, res) => {
         res.json(result.rows);
 
     } catch (error) {
+
         console.error(error);
 
         res.status(500).json({
             message: "Internal Server Error"
         });
+
     }
+});
+
+
+// SEARCH QUESTIONS
+// ค้นหาคำถามจาก title หรือ category
+// URL: GET /questions/search/query?keyword=Backend
+
+router.get("/search/query", async (req, res) => {
+
+    try {
+
+        const { keyword } = req.query;
+
+
+        const result = await connectionPool.query(
+            `
+            SELECT *
+            FROM questions
+            WHERE title ILIKE $1
+            OR category ILIKE $1
+            `,
+            [
+                `%${keyword}%`
+            ]
+        );
+
+
+        res.json(result.rows);
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message: "Internal Server Error"
+        });
+
+    }
+
 });
 
 
 // GET QUESTION BY ID
 // ดึงข้อมูลคำถามตาม id
 // URL: GET /questions/:id
-// ตัวอย่าง: /questions/203
 
 router.get("/:id", async (req, res) => {
+
     try {
+
         const { id } = req.params;
+
 
         const result = await connectionPool.query(
             "SELECT * FROM questions WHERE id = $1",
@@ -42,31 +87,38 @@ router.get("/:id", async (req, res) => {
 
 
         if (result.rows.length === 0) {
+
             return res.status(404).json({
                 message: "Question not found"
             });
+
         }
 
 
         res.json(result.rows[0]);
 
+
     } catch (error) {
+
         console.error(error);
 
         res.status(500).json({
             message: "Internal Server Error"
         });
+
     }
+
 });
 
 
 // CREATE QUESTION
-// เพิ่มคำถามใหม่ลง Database
+// เพิ่มคำถามใหม่
 // URL: POST /questions
-// รับข้อมูลจาก req.body
 
 router.post("/", async (req, res) => {
+
     try {
+
         const { title, description, category } = req.body;
 
 
@@ -77,7 +129,11 @@ router.post("/", async (req, res) => {
             VALUES ($1, $2, $3)
             RETURNING *
             `,
-            [title, description, category]
+            [
+                title,
+                description,
+                category
+            ]
         );
 
 
@@ -85,20 +141,26 @@ router.post("/", async (req, res) => {
 
 
     } catch (error) {
+
         console.error(error);
 
         res.status(500).json({
             message: "Internal Server Error"
         });
+
     }
+
 });
 
+
 // UPDATE QUESTION
-// แก้ไขข้อมูลคำถามตาม id
+// แก้ไขคำถาม
 // URL: PUT /questions/:id
 
 router.put("/:id", async (req, res) => {
+
     try {
+
         const { id } = req.params;
 
         const { title, description, category } = req.body;
@@ -123,9 +185,11 @@ router.put("/:id", async (req, res) => {
 
 
         if (result.rows.length === 0) {
+
             return res.status(404).json({
                 message: "Question not found"
             });
+
         }
 
 
@@ -141,15 +205,18 @@ router.put("/:id", async (req, res) => {
         });
 
     }
+
 });
 
 
 // DELETE QUESTION
-// ลบคำถามตาม id
+// ลบคำถาม
 // URL: DELETE /questions/:id
 
 router.delete("/:id", async (req, res) => {
+
     try {
+
         const { id } = req.params;
 
 
@@ -164,9 +231,11 @@ router.delete("/:id", async (req, res) => {
 
 
         if (result.rows.length === 0) {
+
             return res.status(404).json({
                 message: "Question not found"
             });
+
         }
 
 
@@ -185,6 +254,7 @@ router.delete("/:id", async (req, res) => {
         });
 
     }
+
 });
 
 
